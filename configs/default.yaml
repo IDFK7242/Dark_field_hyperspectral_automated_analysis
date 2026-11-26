@@ -1,0 +1,133 @@
+# Default configuration for darkfield-hsi v0.2 pipeline
+# Generate a fresh copy anytime with: darkfield-hsi init-config -o config.yaml
+
+input:
+  # Optional explicit ordered list of filename stems (without extensions)
+  # to control time-series tracking order. Leave null for automatic sorted discovery.
+  file_order: null
+
+qc:
+  # Stage 0: TIFF frame-level quality-control gate (rejects noisy/bad frames before detection)
+  enabled: true
+  max_bg_median: 80.0
+  max_noise_mad: 25.0
+  max_hf_noise_mad: 15.0
+  max_stripe_index: 2.5
+  min_frame_snr: 4.0
+  min_laplacian_var: 20.0
+  # Dataset-relative MAD outlier check (active when >= 3 frames exist)
+  use_relative_outliers: true
+  outlier_z_thresh: 3.5
+
+detection:
+  # Detection-only TIFF pre-cleaning (original RGB TIFF remains untouched for crops & color)
+  clean_enabled: true
+  # Channel projection: "max_rgb" (preserves blue/red NPs), "mean_rgb", or "gray"
+  channel_projection: max_rgb
+  destripe_columns: true
+  median_ksize: 3
+  gaussian_sigma: 0.7
+  bg_clip_mad_mult: 3.0
+  save_cleaned_images: false
+
+  # Laplacian of Gaussian (LoG) blob detection parameters
+  max_sigma: 19.0
+  num_sigma: 16
+  threshold: 0.04
+  overlap: 0.01
+  radius_scale: 1.5811388300841898
+  min_radius: 1.5
+
+  # Optional edge & dim-spot filters (0 = disabled)
+  border_margin_px: 0
+  min_peak_intensity: 0.0
+  save_tracked_images: true
+
+tracking:
+  # Set to true for time-series of the same FOV, false for independent images
+  enabled: true
+  # Maximum Euclidean distance (pixels) for 1-to-1 Hungarian frame-to-frame matching
+  max_distance_px: 4.0
+  # Phase-correlation stage-drift registration before Hungarian matching
+  register_drift: true
+  drift_upsample_factor: 10
+  # Save multi-frame overlay spectra plots for tracked particles
+  save_overlay_plots: false
+  max_overlay_plots: 200
+
+envi:
+  # Extraction mode: "pixel" (default, center pixel), "fixed_disk", or "blob_disk"
+  extraction_mode: pixel
+  fixed_radius_px: 2.0
+  blob_radius_fraction: 0.6
+  save_plots: false
+
+spectra:
+  # Savitzky-Golay filter parameters (window must be odd and > smoothing_poly)
+  smoothing_window: 21
+  smoothing_poly: 3
+  # Half-max baseline: "zero" (max / 2) or "min" (min + (max - min) / 2)
+  half_max_baseline: zero
+  # Optional wavelength cropping range in nm (requires wavelengths in .hdr)
+  wavelength_min_nm: null
+  wavelength_max_nm: null
+  # Spectral quality & multi-peak LSPR settings
+  min_snr: 5.0
+  peak_prominence_frac: 0.15
+  peak_min_distance_bands: 12
+  # Per-blob Blob_999-style spectrum PNGs & full spectrum CSVs (enabled by default)
+  save_plots: true
+  plot_show_raw: false
+  plot_dual_band_axis: true
+  save_per_blob_csv: true
+  include_normalized_column: true
+  save_per_blob_metrics_csv: false
+  # Parallel workers across CPU cores: "auto" or integer >= 1
+  workers: auto
+
+postprocess:
+  # Centered crop width/height in pixels (saved to crops/normal/ and crops/marked/)
+  crop_size: 64
+  area_frac_for_stats: 0.6
+  radius_floor_px: 4.0
+  # Foreground-only pixel masking to prevent dark background noise from corrupting hue
+  fg_mad_mult: 3.0
+  fg_min_pixels: 4
+  sat_min_for_hue: 0.20
+  # Red split-crosshair overlay parameters for crops/marked/
+  crosshair_color: [255, 0, 0]
+  crosshair_size: 10
+  crosshair_gap: 4
+  crosshair_thickness: 1
+
+aggregate:
+  # Physics-driven multi-modal aggregate classifier
+  # Presets: "agnp" (red_shift=580nm, broad_fwhm=145nm), "aunp" (620nm, 140nm), or "custom"
+  material_preset: agnp
+  red_shift_nm: null
+  broad_fwhm_nm: null
+  # Exposure-invariant frame-relative ratios & morphological thresholds
+  rel_intensity_thresh: 3.0
+  rel_area_thresh: 2.5
+  min_large_spot_area_px: 12.0
+  eccentricity_thresh: 0.65
+  min_eccentricity_area_px: 9.0
+  # Bright broadband (white/yellow) foreground core thresholds
+  v_white_min: 0.85
+  s_white_max: 0.25
+  h_yel_lo: 40.0
+  h_yel_hi: 70.0
+  s_yel_min: 0.30
+  v_yel_min: 0.60
+  # Optional spatial proximity evidence
+  use_proximity: false
+  neighbor_factor: 1.20
+  # 3-tier classification cutoffs on Aggregate_Score in [0, 1]
+  likely_score_thresh: 0.30
+  aggregate_score_thresh: 0.55
+
+reporting:
+  enabled: true
+  save_summary_plots: true
+  save_html_report: true
+  html_page_size: 60

@@ -1,0 +1,53 @@
+[build-system]
+requires = ["setuptools>=61.0"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "darkfield-hsi"
+version = "0.2.0"
+description = "Automated dark-field hyperspectral imaging (HSI) QC, blob detection, spectral analysis, multi-modal aggregate classification, and interactive HTML reporting."
+readme = "README.md"
+license = { text = "Apache-2.0" }
+requires-python = ">=3.10"
+keywords = [
+    "hyperspectral",
+    "dark-field",
+    "microscopy",
+    "nanoparticles",
+    "lspr",
+    "envi",
+    "cytoviva",
+    "spectroscopy",
+]
+classifiers = [
+    "Development Status :: 4 - Beta",
+    "Intended Audience :: Science/Research",
+    "License :: OSI Approved :: Apache Software License",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Topic :: Scientific/Engineering :: Image Processing",
+    "Topic :: Scientific/Engineering :: Physics",
+]
+dependencies = [
+    "numpy>=1.24",
+    "scipy>=1.10",
+    "scikit-image>=0.21",
+    "opencv-python>=4.8",
+    "pandas>=2.0",
+    "matplotlib>=3.7",
+    "Pillow>=10.0",
+    "PyYAML>=6.0",
+]
+
+[project.optional-dependencies]
+dev = [
+    "pytest>=7.4",
+]
+
+[project.scripts]
+darkfield-hsi = "darkfield_hsi.cli:main"
+
+[tool.setuptools.packages.find]
+where = ["src"]
